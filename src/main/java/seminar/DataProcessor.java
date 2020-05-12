@@ -33,8 +33,12 @@ public class DataProcessor implements RequestHandler<S3Event, String> {
 
 			double temperatureAvg = getTemperatureAvg(records);
 			double standardDeviation = getTemperatureStandardDeviation(records, temperatureAvg);
+			String dayWithMaxTemperature = getDayWithMaxTemperature(records);
 
-			final String output = "Average temperatur: " + temperatureAvg + ", standard deviation " + standardDeviation;
+			// Ugly but sufficient
+			final String csvHeader = "avg,standard-deviation,max\n";
+			final String values = temperatureAvg + "," + standardDeviation + "," + dayWithMaxTemperature;
+			final String output = csvHeader + values;
 			writeStringToS3Bucket(output);
 
 
@@ -50,9 +54,25 @@ public class DataProcessor implements RequestHandler<S3Event, String> {
 		final AmazonS3 s3Client = AmazonS3ClientBuilder.defaultClient();
 
 		System.out.println("Writing output " + output + " to S3 Bucket " + TARGET_BUCKET_NAME);
-		s3Client.putObject(TARGET_BUCKET_NAME, "output", output);
+		s3Client.putObject(TARGET_BUCKET_NAME, "output.csv", output);
 
 		s3Client.shutdown();
+	}
+
+	private static String getDayWithMaxTemperature(final List<CSVRecord> records) {
+		double maxTemperature = Double.NEGATIVE_INFINITY;
+		String dayWithMax = "";
+
+		for (final CSVRecord record : records) {
+			final double currentTemperature = parseDouble(record);
+
+			if (maxTemperature < currentTemperature) {
+				maxTemperature = currentTemperature;
+				dayWithMax = record.get(0);
+			}
+		}
+
+		return dayWithMax;
 	}
 
 	private static double getTemperatureStandardDeviation(final List<CSVRecord> records, final double temperatureAvg) {
