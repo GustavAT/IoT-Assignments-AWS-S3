@@ -4,7 +4,7 @@
 
 |Nr|Topic|Solution|
 |---|---|---|
-|06|Amazon S3|[DataProcessor.java](./src/main/java/seminar/DataProcessor.java)|
+|07|Amazon S3|[DataProcessor.java](./src/main/java/seminar/DataProcessor.java)|
 
 ## Build
 
